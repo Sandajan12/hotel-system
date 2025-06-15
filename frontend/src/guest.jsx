@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Roomdetails from "./admin-room"
+import Roomdetails from "./admin-room";
 import { useNavigate } from "react-router-dom";
 import {
   Container,
@@ -20,12 +20,13 @@ import {
   DialogActions,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  Divider
 } from "@mui/material";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { Person as PersonIcon, Logout as LogoutIcon } from '@mui/icons-material';
+import { Person as PersonIcon, Logout as LogoutIcon, Print as PrintIcon } from '@mui/icons-material';
 
 const GuestDashboard = () => {
   const navigate = useNavigate();
@@ -47,11 +48,13 @@ const GuestDashboard = () => {
   // Modal states
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [receiptModalOpen, setReceiptModalOpen] = useState(false);
   const [currentReservationData, setCurrentReservationData] = useState(null);
   const [paymentData, setPaymentData] = useState({
     amount: '',
     paymentMethod: ''
   });
+  const [receiptData, setReceiptData] = useState(null);
 
   const paymentMethods = [
     'Credit Card',
@@ -237,8 +240,25 @@ const GuestDashboard = () => {
         throw new Error(paymentResult.error || "Failed to process payment");
       }
 
-      alert("Payment and reservation processed successfully! Your reservation is pending confirmation.");
+      // Prepare receipt data
+      setReceiptData({
+        reservationId: reservationData.reservationId,
+        paymentId: paymentResult.paymentId,
+        guestName: user,
+        roomType: currentReservationData.formData.roomType,
+        checkIn: currentReservationData.formData.checkIn,
+        checkOut: currentReservationData.formData.checkOut,
+        guests: currentReservationData.formData.guests,
+        nights: currentReservationData.nights,
+        totalPrice: currentReservationData.totalPrice,
+        paymentMethod: paymentData.paymentMethod,
+        paymentDate: new Date(),
+        status: 'Pending Confirmation'
+      });
+
+      // Close payment modal and show receipt
       setPaymentModalOpen(false);
+      setReceiptModalOpen(true);
       
       // Reset forms
       setFormData({
@@ -255,6 +275,10 @@ const GuestDashboard = () => {
       console.error("Error:", error);
       alert(`Error: ${error.message}`);
     }
+  };
+
+  const handlePrintReceipt = () => {
+    window.print();
   };
 
   const handleLogout = () => {
@@ -555,6 +579,115 @@ const GuestDashboard = () => {
               </form>
             </>
           )}
+        </Box>
+      </Modal>
+
+      {/* Receipt Modal */}
+      <Modal
+        open={receiptModalOpen}
+        onClose={() => setReceiptModalOpen(false)}
+        aria-labelledby="receipt-modal-title"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+          borderRadius: 2,
+          '@media print': {
+            boxShadow: 'none',
+            position: 'static',
+            transform: 'none',
+            width: '100%'
+          }
+        }}>
+          <Box id="receipt-content">
+            <Typography id="receipt-modal-title" variant="h5" component="h2" gutterBottom align="center">
+              Hotel Reservation Receipt
+            </Typography>
+            <Typography variant="subtitle1" gutterBottom align="center">
+              Thank you for your reservation!
+            </Typography>
+            
+            <Divider sx={{ my: 2 }} />
+            
+            {receiptData && (
+              <>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="body1" gutterBottom>
+                    <strong>Receipt #:</strong> {receiptData.paymentId}
+                  </Typography> 
+                  <Typography variant="body1" gutterBottom>
+                    <strong>Reservation #:</strong> {receiptData.reservationId}
+                  </Typography>
+                  <Typography variant="body1" gutterBottom>
+                    <strong>Date:</strong> {receiptData.paymentDate.toLocaleDateString()}
+                  </Typography>
+                  <Typography variant="body1" gutterBottom>
+                    <strong>Guest Name:</strong> {receiptData.guestName}
+                  </Typography>
+                  
+                  <Divider sx={{ my: 2 }} />
+                  
+                  <Typography variant="body1" gutterBottom>
+                    <strong>Room Type:</strong> {receiptData.roomType}
+                  </Typography>
+                  <Typography variant="body1" gutterBottom>
+                    <strong>Check-In:</strong> {receiptData.checkIn.toLocaleDateString()}
+                  </Typography>
+                  <Typography variant="body1" gutterBottom>
+                    <strong>Check-Out:</strong> {receiptData.checkOut.toLocaleDateString()}
+                  </Typography>
+                  <Typography variant="body1" gutterBottom>
+                    <strong>Nights:</strong> {receiptData.nights}
+                  </Typography>
+                  <Typography variant="body1" gutterBottom>
+                    <strong>Guests:</strong> {receiptData.guests}
+                  </Typography>
+                  
+                  <Divider sx={{ my: 2 }} />
+                  
+                  <Typography variant="body1" gutterBottom>
+                    <strong>Payment Method:</strong> {receiptData.paymentMethod}
+                  </Typography>
+                  <Typography variant="h6" sx={{ mt: 2 }}>
+                    <strong>Total Paid:</strong> ${receiptData.totalPrice}
+                  </Typography>
+                  
+                  <Divider sx={{ my: 2 }} />
+                  
+                  <Typography variant="body2" color="text.secondary" align="center">
+                    Status: {receiptData.status}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
+                    Please present this receipt at check-in
+                  </Typography>
+                </Box>
+              </>
+            )}
+          </Box>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+            <Button 
+              onClick={() => setReceiptModalOpen(false)} 
+              color="primary"
+              variant="outlined"
+            >
+              Close
+            </Button>
+            <Button
+              onClick={handlePrintReceipt}
+              variant="contained"
+              color="primary"
+              startIcon={<PrintIcon />}
+            >
+              Print Receipt
+            </Button>
+          </Box>
         </Box>
       </Modal>
     </Container>
