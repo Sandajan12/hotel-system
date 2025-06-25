@@ -679,14 +679,6 @@ const GuestDashboard = () => {
             >
               Close
             </Button>
-            <Button
-              onClick={handlePrintReceipt}
-              variant="contained"
-              color="primary"
-              startIcon={<PrintIcon />}
-            >
-              Print Receipt
-            </Button>
           </Box>
         </Box>
       </Modal>

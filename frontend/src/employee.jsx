@@ -176,18 +176,6 @@ const EmployeeDashboard = () => {
           Search Reservations
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <FormControl sx={{ minWidth: 180 }}>
-            <InputLabel id="search-type-label">Search By</InputLabel>
-            <Select
-              labelId="search-type-label"
-              value={searchType}
-              label="Search By"
-              onChange={(e) => setSearchType(e.target.value)}
-            >
-              <MenuItem value="reservation_id">Reservation ID</MenuItem>
-              <MenuItem value="guest_name">Guest Name</MenuItem>
-            </Select>
-          </FormControl>
           
           <TextField
             fullWidth
@@ -213,16 +201,6 @@ const EmployeeDashboard = () => {
             sx={{ height: 56 }}
           >
             Search
-          </Button>
-          <Button 
-            variant="outlined"
-            onClick={() => {
-              setSearchTerm('');
-              setFilteredReservations(reservations);
-            }}
-            sx={{ height: 56 }}
-          >
-            Clear
           </Button>
         </Box>
       </Paper>
